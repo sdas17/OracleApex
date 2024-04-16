@@ -1,38 +1,53 @@
+
+
 const express = require('express');
-const mysql = require('mysql');
+const cors = require('cors');
 const app = express();
-const cors = require("cors");
-app.use(cors());
 const PORT = 3000;
+const { MongoClient } = require('mongodb');
 const IP_ADDRESS = '172.17.15.58';
-// Database connection
-const connection = mysql.createConnection({
-host: 'localhost',
-user: 'root',
-password: 'password',
-database: 'cafenodejs'
-});
+app.use(cors());
+app.use(express.json());
+require('dotenv').config();
+const uri = process.env.DB_PASSWORD;
 
-connection.connect();
+const client = new MongoClient(uri);
+    async function connectMongo() {
+        try {
+            await client.connect();
+            console.log('Connected to MongoDB');
+        } catch (err) {
+            console.error('Error connecting to MongoDB:', err);
+        }
+    }
+    
+    connectMongo();
 
-// Middleware to check for token in headers
-const authenticateToken = (req, res, next) => {
-const token = req.headers['authorization'];
-if (!token || token !== 'Bearer my_secret_token') {
-return res.sendStatus(401);
-}
-next();
-};
+    app.use((req, res, next) => {
+        req.db = client.db('sample_mflix');
+        next();
+    });
+    
+     const authenticateToken = (req, res, next) => {
+        const token = req.headers['authorization'];
+        if (!token || token !== 'Bearer my_secret_token') {
+        return res.sendStatus(401);
+        }
+        next();
+        };
 
-// Protected route with database query
-app.get('/api/data', authenticateToken, (req, res) => {
-connection.query('SELECT * FROM user', (error, results, fields) => {
-if (error) throw error;
-res.json({ data: results });
-});
-});
 
-// Start the server
-app.listen(PORT, IP_ADDRESS ,() => {
-    // console.log(`Server running at ${IP_ADDRESS}:${PORT}`);
-});
+    app.get('/api/data', authenticateToken,async (req, res) => {
+        try {
+            const collection = req.db.collection('comments');
+            const results = await collection.find({}).toArray();
+            res.json({ data: results });
+        } catch (err) {
+            console.error('Error fetching data:', err);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    });
+    app.listen(PORT,IP_ADDRESS, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+ 
