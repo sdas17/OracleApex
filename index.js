@@ -5,7 +5,7 @@ const cors = require('cors');
 const app = express();
 const PORT = 3000;
 const { MongoClient } = require('mongodb');
-const IP_ADDRESS = '172.17.15.58';
+const IP_ADDRESS = '0.0.0.0';
 app.use(cors());
 app.use(express.json());
 require('dotenv').config();
