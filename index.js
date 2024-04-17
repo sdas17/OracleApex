@@ -5,7 +5,7 @@ const cors = require('cors');
 const app = express();
 const PORT = 3000;
 const { MongoClient } = require('mongodb');
-const IP_ADDRESS = '0.0.0.0';
+
 app.use(cors());
 app.use(express.json());
 require('dotenv').config();
@@ -47,7 +47,7 @@ const client = new MongoClient(uri);
             res.status(500).json({ error: 'Internal server error' });
         }
     });
-    app.listen(PORT,IP_ADDRESS, () => {
+    app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
  
